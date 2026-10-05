@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modul Pembahasan Interaktif TKA Ekonomi 2025</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .math-text {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #e5e7eb;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        /* Custom Scrollbar for sidebar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8; 
+        }
+        
+        .tab-active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border-left: 4px solid #1d4ed8;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="text-gray-800 bg-gray-50 font-sans antialiased">
+
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-blue-700 text-white p-4 flex justify-between items-center shadow-md z-40">
+        <h1 class="text-lg font-bold truncate">SOAL TKA Ekonomi - SMAN 1 Cidahu</h1>
+        <button id="mobile-menu-btn" class="focus:outline-none p-1.5 bg-blue-800 rounded-md active:bg-blue-900 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <div id="mobile-overlay" class="fixed inset-0 bg-gray-900/50 z-30 hidden backdrop-blur-sm transition-opacity opacity-0 md:hidden"></div>
+
+    <aside id="sidebar" class="bg-white w-[280px] md:w-72 fixed inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl md:shadow-none border-r border-gray-200">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white">
+            <div>
+                <h1 class="text-xl font-bold text-blue-700">TKA Ekonomi SMANIDA</h1>
+                <p class="text-sm text-gray-500 mt-1">Modul Pembahasan 2025</p>
+            </div>
+            <button id="close-sidebar-btn" class="md:hidden text-gray-400 hover:text-gray-700 p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="overflow-y-auto flex-1 py-2 bg-white" id="nav-container">
+            <!-- Nav Items akan di-render di sini oleh JS -->
+        </div>
+    </aside>
+
+    <main class="w-full md:pl-72 pt-20 md:pt-0 min-h-screen flex flex-col">
+        <div class="p-4 md:p-8 flex-1 max-w-5xl mx-auto w-full space-y-6" id="content-container">
+            <!-- Header Soal -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-8 transition-all">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <h2 id="soal-title" class="text-xl md:text-2xl font-bold text-gray-800">Pilih Soal</h2>
+                    <span id="soal-badge" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full uppercase tracking-wider whitespace-nowrap">Topik</span>
+                </div>
+                <div id="soal-text" class="text-gray-700 leading-relaxed space-y-3 mb-6 text-sm md:text-base">
+                    Silakan pilih soal dari menu navigasi untuk melihat detail pertanyaan dan pembahasan.
+                </div>
+                
+                <!-- Pilihan Jawaban -->
+                <div id="soal-options" class="space-y-3 hidden">
+                    <!-- Options di-render via JS -->
+                </div>
+            </div>
+
+            <!-- Pembahasan & Chart -->
+            <div id="pembahasan-container" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Teks Pembahasan -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-8">
+                    <div class="flex items-center mb-4">
+                        <svg class="w-6 h-6 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="text-lg font-bold text-gray-800">Pembahasan & Analisis</h3>
+                    </div>
+                    <div class="p-4 bg-green-50 border border-green-100 rounded-lg mb-4 text-sm md:text-base">
+                        <span class="font-bold text-green-800">Jawaban Benar: </span>
+                        <span id="correct-answer" class="text-green-700 font-semibold"></span>
+                    </div>
+                    <div id="pembahasan-text" class="text-gray-700 leading-relaxed space-y-3 text-sm md:text-base">
+                        <!-- Teks Pembahasan -->
+                    </div>
+                </div>
+
+                <!-- Grafik Dinamis -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6 flex flex-col items-center min-h-[350px]">
+                    <h3 id="chart-title" class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 w-full text-center">Visualisasi Grafik</h3>
+                    <div class="relative w-full flex-1">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200 pb-8 gap-4">
+                <button id="btn-prev" class="flex-1 md:flex-none flex justify-center items-center px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium">
+                    <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Sebelumnya
+                </button>
+                <button id="btn-next" class="flex-1 md:flex-none flex justify-center items-center px-4 py-3 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium">
+                    Selanjutnya
+                    <svg class="w-5 h-5 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Data Soal
+        const dataSoal = [
+            {
+                id: 'soal1',
+                label: 'Soal 1 (Kelangkaan Lahan)',
+                title: 'Soal No 1',
+                topic: 'Kelangkaan & Biaya Peluang',
+                text: `<p>Di pinggiran kota besar, lahan pertanian beralih fungsi menjadi perumahan. Harga bahan pangan lokal naik dan petani kehilangan lahan. Apa penyebab peralihan lahan dan solusi berdasarkan prinsip ekonomi?</p>`,
+                options: [
+                    { letter: 'A', text: 'Meningkatnya permintaan hasil pertanian dan menghentikan pembangunan.' },
+                    { letter: 'B', text: 'Memberi peringatan dan bantuan tunai agar petani tidak menjual lahan.' },
+                    { letter: 'C', text: 'Meningkatnya pembangunan gedung berbanding terbalik ketersediaan tanah, solusinya menetapkan zona perlindungan lahan.' },
+                    { letter: 'D', text: 'Pemekaran wilayah dan menurunkan pajak.' },
+                    { letter: 'E', text: 'Konflik kepentingan dan mengimpor bahan pangan.' }
+                ],
+                answer: 'C',
+                answerText: 'Pembangunan vs Ketersediaan (Opsi C mendekati konteks zonasi pelestarian).',
+                pembahasan: `<p>Permasalahan utamanya adalah <strong>kelangkaan lahan (Scarcity)</strong> akibat kompetisi penggunaan lahan (pertanian vs komersial/perumahan). Berdasarkan prinsip ekonomi, ketika permintaan ruang (gedung) meningkat sedangkan penawaran (ketersediaan tanah) tetap/terbatas, harga lahan naik pesat. Solusi paling rasional bagi pemerintah adalah intervensi melalui kebijakan tata ruang seperti menetapkan <strong>zona perlindungan lahan</strong> (Lahan Pertanian Pangan Berkelanjutan) atau mendorong optimalisasi seperti urban farming.</p>`,
+                chartType: 'doughnut',
+                chartConfig: {
+                    title: 'Dinamika Alih Fungsi Lahan',
+                    data: { labels: ['Lahan Perumahan/Komersial', 'Lahan Pertanian (Menyusut)'], datasets: [{ data: [75, 25], backgroundColor: ['#ef4444', '#10b981'] }] },
+                    options: { plugins: { legend: { position: 'bottom' } } }
+                }
+            },
+            {
+                id: 'soal2',
+                label: 'Soal 2 (Biaya Peluang)',
+                title: 'Soal No 2',
+                topic: 'Biaya Peluang',
+                text: `<p>Safia dihadapkan 3 pilihan: Bekerja gaji Rp10.000.000, S2 beasiswa uang saku Rp2.000.000, atau Buka Usaha omset Rp16.000.000. Jika Safia memilih Buka Usaha, berapakah biaya peluangnya?</p>`,
+                options: [
+                    { letter: 'A', text: 'Rp18.000.000,00' }, { letter: 'B', text: 'Rp16.000.000,00' }, { letter: 'C', text: 'Rp12.000.000,00' }, { letter: 'D', text: 'Rp10.000.000,00' }, { letter: 'E', text: 'Rp2.000.000,00' }
+                ],
+                answer: 'D',
+                answerText: 'Rp10.000.000,00',
+                pembahasan: `<p><strong>Biaya peluang (Opportunity Cost)</strong> adalah nilai dari <em>satu alternatif terbaik</em> yang dikorbankan saat kita membuat suatu pilihan. Karena Safia memilih buka usaha, ia mengorbankan pilihan Bekerja (Rp10jt) dan S2 (Rp2jt). Alternatif yang memiliki nilai tertinggi (terbaik) yang tidak dipilih adalah bekerja dengan gaji <strong>Rp10.000.000</strong>. Biaya peluang tidak dijumlahkan!</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Perbandingan Pilihan Safia',
+                    data: { labels: ['Usaha (Dipilih)', 'Bekerja (Dikorbankan)', 'S2 (Dikorbankan)'], datasets: [{ label: 'Nilai (Juta Rp)', data: [16, 10, 2], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'] }] },
+                    options: { plugins: { legend: { display: false } } }
+                }
+            },
+            {
+                id: 'soal3',
+                label: 'Soal 3 (Masalah Ekonomi)',
+                title: 'Soal No 3',
+                topic: 'Masalah Ekonomi',
+                text: `<p>Perusahaan "Segar Abadi" kesulitan akibat harga jahe, madu, lemon naik (gagal panen). Mengganti bahan sintetis menurunkan kualitas. Tindakan paling tepat?</p>`,
+                options: [
+                    { letter: 'A', text: 'Mencari alternatif bahan alami dari daerah lain yang lebih kompetitif.' },
+                    { letter: 'B', text: 'Mengganti bahan sintetis agar biaya murah.' },
+                    { letter: 'C', text: 'Mengurangi produksi besar-besaran.' },
+                    { letter: 'D', text: 'Menurunkan kualitas produk.' },
+                    { letter: 'E', text: 'Menaikkan harga dua kali lipat.' }
+                ],
+                answer: 'A',
+                answerText: 'Mencari alternatif bahan baku alami dari daerah lain',
+                pembahasan: `<p>Berdasarkan prinsip ekonomi (memaksimalkan utilitas/profit tanpa merusak keberlangsungan <em>brand</em>), produsen harus mencari efisiensi biaya input (<em>How to produce</em>). Memilih <strong>alternatif pasokan bahan alami dari daerah lain</strong> mempertahankan kualitas produk sehat sehingga kepercayaan konsumen terjaga dan perusahaan tetap dapat bertahan di persaingan harga.</p>`,
+                chartType: 'pie',
+                chartConfig: {
+                    title: 'Trade-off Keputusan Produksi',
+                    data: { labels: ['Cari Supplier Baru (Optimal)', 'Bahan Sintetis (Reputasi Turun)', 'Naik Harga (Volume Turun)'], datasets: [{ data: [60, 20, 20], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal4',
+                label: 'Soal 4 (Keseimbangan)',
+                title: 'Soal No 4',
+                topic: 'Keseimbangan Pasar',
+                text: `<p>Perusahaan "Adiwastra Jaya" memproduksi pakaian. Ketika pemerintah menaikkan UMP sebesar 6,5%, maka biaya produksi naik. Kenaikan ini berdampak pada keseimbangan pasar yaitu ....</p>`,
+                options: [
+                    { letter: 'A', text: 'harga naik dan jumlah barang tetap' },
+                    { letter: 'B', text: 'harga naik dan jumlah barang turun' },
+                    { letter: 'C', text: 'harga naik dan jumlah barang naik' },
+                    { letter: 'D', text: 'harga turun dan jumlah barang naik' },
+                    { letter: 'E', text: 'harga turun dan jumlah barang turun' }
+                ],
+                answer: 'B',
+                answerText: 'Harga naik dan jumlah barang turun',
+                pembahasan: `<p>Kenaikan UMP meningkatkan <strong>biaya produksi</strong>. Akibatnya, kurva penawaran (Supply) bergeser ke kiri. Dengan permintaan yang tetap, titik keseimbangan baru akan terbentuk pada tingkat <strong>harga yang lebih tinggi</strong> dan <strong>kuantitas (jumlah barang) yang menurun</strong>.</p>`,
+                chartType: 'scatter',
+                chartConfig: {
+                    title: 'Kurva Penawaran Bergeser (Biaya Naik)',
+                    data: {
+                        datasets: [
+                            { label: 'Demand', data: [{x: 0, y: 10}, {x: 10, y: 0}], borderColor: '#ef4444', backgroundColor: '#ef4444', showLine: true, tension: 0, pointRadius: 0 },
+                            { label: 'Supply 1', data: [{x: 0, y: 0}, {x: 10, y: 10}], borderColor: '#3b82f6', backgroundColor: '#3b82f6', showLine: true, tension: 0, pointRadius: 0 },
+                            { label: 'Supply 2', data: [{x: 0, y: 4}, {x: 6, y: 10}], borderColor: '#8b5cf6', backgroundColor: '#8b5cf6', showLine: true, borderDash: [5, 5], tension: 0, pointRadius: 0 },
+                            { label: 'Titik Awal', data: [{x: 5, y: 5}], backgroundColor: '#111827', pointRadius: 6 },
+                            { label: 'Titik Baru', data: [{x: 3, y: 7}], backgroundColor: '#10b981', pointRadius: 6, pointStyle: 'rectRot' }
+                        ]
+                    },
+                    options: { scales: { x: { title: { display: true, text: 'Q' }, min: 0, max: 10 }, y: { title: { display: true, text: 'P' }, min: 0, max: 10 } } }
+                }
+            },
+            {
+                id: 'soal5',
+                label: 'Soal 5 (Fungsi Penawaran)',
+                title: 'Soal No 5',
+                topic: 'Permintaan & Penawaran',
+                text: `<p>Fungsi Penawaran Toko Kue:<br>Tepung: Qs = -1250 + 0,25P (Harga awal 15.000)<br>Telur: Qs = 500 + 0,04P (Harga awal 30.000)<br>Gula: Qs = -1200 + 0,3P (Harga awal 20.000)<br>Jika harga naik Rp3.000, berapakah penawaran baru?</p>`,
+                options: [
+                    { letter: 'A', text: 'Tepung 3.250kg, Telur 1.820kg, dan Gula 5.700kg.' },
+                    { letter: 'B', text: 'Tepung 3.250kg, Telur 1.700kg, dan Gula 5.700kg.' },
+                    { letter: 'C', text: 'Tepung 3.250kg, Telur 1.700kg, dan Gula 4.800kg.' }
+                ],
+                answer: 'A',
+                answerText: 'Tepung 3.250, Telur 1.820, Gula 5.700',
+                pembahasan: `<p>Substitusi harga baru (ditambah 3.000) ke setiap fungsi:<br>
+                1. <strong>Tepung</strong>: P = 18.000 &rarr; Qs = -1250 + 0,25(18.000) = -1250 + 4500 = <strong>3.250</strong><br>
+                2. <strong>Telur</strong>: P = 33.000 &rarr; Qs = 500 + 0,04(33.000) = 500 + 1320 = <strong>1.820</strong><br>
+                3. <strong>Gula</strong>: P = 23.000 &rarr; Qs = -1200 + 0,3(23.000) = -1200 + 6900 = <strong>5.700</strong></p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Kuantitas Penawaran (Setelah Kenaikan Harga)',
+                    data: { labels: ['Tepung', 'Telur', 'Gula'], datasets: [{ label: 'Kuantitas (kg)', data: [3250, 1820, 5700], backgroundColor: '#3b82f6' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal6',
+                label: 'Soal 6 (Pajak)',
+                title: 'Soal No 6',
+                topic: 'Pajak & Keseimbangan',
+                text: `<p>Qd = -20P + 500 dan Qs = 5P + 100. Pajak (t) = Rp25,00/unit. Kesimpulan yang tepat?</p>`,
+                options: [
+                    { letter: 'Cek', text: 'Kuantitas awal 180, setelah pajak 80 (Turun 100)' },
+                    { letter: 'Cek', text: 'Harga awal 16, setelah pajak 21 (Naik 5)' }
+                ],
+                answer: 'Analisis',
+                answerText: 'Titik Awal (180, 16). Titik Baru (80, 21). Kuantitas turun 100, Harga naik 5.',
+                pembahasan: `<p><strong>Awal:</strong> Qd = Qs &rarr; -20P + 500 = 5P + 100 &rarr; 25P = 400 &rarr; <strong>P = 16, Q = 180</strong>.<br>
+                <strong>Setelah Pajak:</strong> Ubah penawaran ke P: Ps = (Q/5) - 20. Tambah pajak 25: Ps' = (Q/5) + 5. Ubah balik ke Qs': Qs' = 5P - 25. <br>
+                Qd = Qs' &rarr; -20P + 500 = 5P - 25 &rarr; 25P = 525 &rarr; <strong>P = 21, Q = 80</strong>.</p>`,
+                chartType: 'scatter',
+                chartConfig: {
+                    title: 'Dampak Pajak pada Keseimbangan',
+                    data: {
+                        datasets: [
+                            { label: 'Demand', data: [{x: 0, y: 25}, {x: 500, y: 0}], borderColor: '#ef4444', backgroundColor: '#ef4444', showLine: true, tension: 0, pointRadius: 0 },
+                            { label: 'Supply', data: [{x: 100, y: 0}, {x: 300, y: 40}], borderColor: '#3b82f6', backgroundColor: '#3b82f6', showLine: true, tension: 0, pointRadius: 0 },
+                            { label: 'Supply + Pajak', data: [{x: -25, y: 0}, {x: 175, y: 40}], borderColor: '#f59e0b', backgroundColor: '#f59e0b', showLine: true, borderDash: [5, 5], tension: 0, pointRadius: 0 },
+                            { label: 'E Awal', data: [{x: 180, y: 16}], backgroundColor: '#111827', pointRadius: 6 },
+                            { label: 'E Pajak', data: [{x: 80, y: 21}], backgroundColor: '#10b981', pointRadius: 6 }
+                        ]
+                    },
+                    options: { scales: { x: { min: 0, max: 300 }, y: { min: 0, max: 30 } } }
+                }
+            },
+            {
+                id: 'soal7',
+                label: 'Soal 7 (Permintaan)',
+                title: 'Soal No 7',
+                topic: 'Pergeseran Kurva',
+                text: `<p>BBM dan motor adalah komplementer. Jika harga BBM naik, analisis pergerakan kurva permintaan sepeda motor:</p>`,
+                options: [
+                    { letter: 'A', text: 'bergerak ke atas (D2)' },
+                    { letter: 'B', text: 'bergerak kebawah (D3)' },
+                    { letter: 'C', text: 'jumlah permintaan ke kanan (Q2)' },
+                    { letter: 'D', text: 'jumlah permintaan bergeser ke kiri (Q3)' }
+                ],
+                answer: 'D',
+                answerText: 'jumlah permintaan sepeda motor bergeser ke kiri (Q3)',
+                pembahasan: `<p>Barang komplementer adalah barang yang saling melengkapi. Jika harga barang A (BBM) naik, konsumen akan mengurangi konsumsi A, sehingga kebutuhan terhadap barang pasangannya (Motor) juga akan <strong>menurun</strong>. Ini menggeser seluruh kurva permintaan motor ke kiri (D1 ke D3 atau Q1 ke Q3).</p>`,
+                chartType: 'scatter',
+                chartConfig: {
+                    title: 'Kurva Permintaan Bergeser',
+                    data: {
+                        datasets: [
+                            { label: 'D1 (Awal)', data: [{x: 1, y: 9}, {x: 9, y: 1}], borderColor: '#3b82f6', backgroundColor: '#3b82f6', showLine: true, tension: 0, pointRadius: 0 },
+                            { label: 'D3 (Turun)', data: [{x: 0, y: 7}, {x: 7, y: 0}], borderColor: '#ef4444', backgroundColor: '#ef4444', showLine: true, borderDash: [5, 5], tension: 0, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: { min: 0, max: 10 }, y: { min: 0, max: 10 } } }
+                }
+            },
+            {
+                id: 'soal8',
+                label: 'Soal 8 (Pendapatan Nasional)',
+                title: 'Soal No 8',
+                topic: 'Pendapatan Nasional',
+                text: `<p>Data: PDB 1.200.000; Produk netto luar negeri 80.000; Pajak lgs 30.000; Pajak tdk lgs 10.000; Penyusutan 15.000; Iuran asuransi 30.000; Laba ditahan 8.000; Pajak perseroan 9.000; Transfer payment 12.000 (Miliar Rp). Berapa Disposable Income (DI)?</p>`,
+                options: [
+                    { letter: 'A', text: 'Rp1.030.000 miliar' }, { letter: 'B', text: 'Rp1.166.000 miliar' }, { letter: 'C', text: 'Rp1.190.000 miliar' }, { letter: 'D', text: 'Rp1.220.000 miliar' }
+                ],
+                answer: 'C',
+                answerText: 'Rp1.190.000 miliar',
+                pembahasan: `<p>Langkah Perhitungan:<br>
+                1. <strong>GNP</strong> = PDB + Netto LN = 1.200.000 + 80.000 = 1.280.000<br>
+                2. <strong>NNP</strong> = GNP - Penyusutan = 1.280.000 - 15.000 = 1.265.000<br>
+                3. <strong>NNI</strong> = NNP - Pajak Tdk Langsung = 1.265.000 - 10.000 = 1.255.000<br>
+                4. <strong>PI</strong> = (NNI + Transfer) - (Asuransi + Laba Ditahan + Pajak Perseroan) = (1.255.000 + 12.000) - (30.000 + 8.000 + 9.000) = 1.220.000<br>
+                5. <strong>DI</strong> = PI - Pajak Langsung = 1.220.000 - 30.000 = <strong>1.190.000</strong></p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Tahapan Menuju DI',
+                    data: { labels: ['GNP', 'NNP', 'NNI', 'PI', 'DI'], datasets: [{ label: 'Nilai (Miliar Rp)', data: [1280000, 1265000, 1255000, 1220000, 1190000], backgroundColor: '#10b981' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal9',
+                label: 'Soal 9 (Pertumbuhan)',
+                title: 'Soal No 9',
+                topic: 'Pertumbuhan Ekonomi',
+                text: `<p>Faktor yang dapat memengaruhi pertumbuhan ekonomi suatu negara? (Jawaban lebih dari satu)</p>`,
+                options: [
+                    { letter: 'Opsi 1', text: 'Inovasi dan teknologi.' },
+                    { letter: 'Opsi 2', text: 'Pendidikan.' },
+                    { letter: 'Opsi 3', text: 'Akses perbankan dan kredit.' }
+                ],
+                answer: 'Multichoice',
+                answerText: 'Inovasi teknologi, Pendidikan, Akses Layanan Perbankan, Kestabilan Harga.',
+                pembahasan: `<p>Pertumbuhan ekonomi ditopang oleh akumulasi modal, sumber daya manusia, dan teknologi (Model Solow). Inovasi mempercepat kapasitas produksi. Akses perbankan (kredit) memutar roda investasi (pembentukan modal). Pendidikan meningkatkan mutu SDM (human capital).</p>`,
+                chartType: 'radar',
+                chartConfig: {
+                    title: 'Faktor Penggerak Pertumbuhan',
+                    data: { labels: ['Teknologi', 'Pendidikan (SDM)', 'Investasi/Kredit', 'Stabilitas Makro', 'SDA'], datasets: [{ label: 'Dampak Positif', data: [90, 85, 80, 75, 60], backgroundColor: 'rgba(59, 130, 246, 0.4)', borderColor: '#3b82f6' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal10',
+                label: 'Soal 10 (Indeks Gini)',
+                title: 'Soal No 10',
+                topic: 'Distribusi Pendapatan',
+                text: `<p>Keterkaitan pertumbuhan dengan Indeks Gini. Apakah pertumbuhan selalu menurunkan Indeks Gini (ketimpangan)?</p>`,
+                options: [
+                    { letter: 'Benar/Salah', text: 'Peningkatan pertumbuhan 21-23 diikuti peningkatan Gini -> Benar' },
+                    { letter: 'Benar/Salah', text: 'Setiap pertumbuhan naik, Gini selalu turun -> Salah' }
+                ],
+                answer: 'Benar, Benar, Salah',
+                answerText: 'Pertumbuhan tak selalu ratakan pendapatan.',
+                pembahasan: `<p>Pertumbuhan ekonomi yang tinggi (PDB naik) tidak menjamin distribusinya merata ke seluruh lapisan. Jika sektor padat modal tumbuh lebih cepat dari padat karya, kelompok atas meraup untung lebih besar, sehingga <strong>Indeks Gini justru bisa naik</strong> (semakin timpang).</p>`,
+                chartType: 'line',
+                chartConfig: {
+                    title: 'Trend Gini Ratio vs Pertumbuhan',
+                    data: { labels: ['2020', '2021', '2022', '2023', '2024'], datasets: [{ label: 'Indeks Gini', data: [0.381, 0.384, 0.384, 0.388, 0.379], borderColor: '#ef4444' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal11',
+                label: 'Soal 11 (Vietnam vs Indo)',
+                title: 'Soal No 11',
+                topic: 'Pembangunan Ekonomi',
+                text: `<p>Vietnam PDB 7,09%, Perkapita 4700, IPM 0,766. Indonesia PDB 5,03%, Perkapita 4960, IPM 0,750. Pernyataan yang tepat?</p>`,
+                options: [
+                    { letter: 'Pilihan', text: 'Nilai IPM kedua negara tinggi (pendidikan, kesehatan baik)' },
+                    { letter: 'Pilihan', text: 'Kapasitas produksi barang jasa pesat cerminkan pembangunan' }
+                ],
+                answer: 'Multi',
+                answerText: 'IPM Kategori Tinggi, Kapasitas Produksi Pesat.',
+                pembahasan: `<p>Nilai IPM di atas 0,700 masuk kategori tinggi yang merefleksikan kesehatan, pendidikan, dan standar hidup yang baik. Meskipun laju PDB Vietnam (7,09%) lebih pesat, pendapatan per kapita Indonesia masih unggul tipis. Pertumbuhan PDB positif keduanya menandakan ekspansi kapasitas produksi secara makro.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Perbandingan Pembangunan Makro',
+                    data: { labels: ['Pertumbuhan PDB (%)', 'IPM (Skala x10)'], datasets: [{ label: 'Vietnam', data: [7.09, 7.66], backgroundColor: '#ef4444' }, { label: 'Indonesia', data: [5.03, 7.50], backgroundColor: '#3b82f6' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal12',
+                label: 'Soal 12 (Pengangguran)',
+                title: 'Soal No 12',
+                topic: 'Ketenagakerjaan',
+                text: `<p>Mely (baru lulus, cari kerja). Yoga (tidak penuhi kualifikasi). Pratiwi (pindah kota). Bagas (tolak upah). Andi (PHK krn rugi). Tentukan Benar/Salah jenis penganggurannya.</p>`,
+                options: [
+                    { letter: 'BS', text: 'Mely dan Bagas = Friksional (BENAR)' },
+                    { letter: 'BS', text: 'Andi dan Pratiwi = Struktural (SALAH - Andi Siklis, Pratiwi Friksional)' }
+                ],
+                answer: 'Benar/Salah',
+                answerText: 'Mely, Bagas, Pratiwi (Friksional). Yoga (Struktural). Andi (Siklis).',
+                pembahasan: `<p>1. <strong>Friksional</strong>: Masa transisi/mencari kecocokan (Mely baru lulus, Bagas tidak cocok gaji, Pratiwi pindah lokasi).<br>2. <strong>Struktural</strong>: Lulusan tidak sesuai kualifikasi industri (Yoga).<br>3. <strong>Siklis (Konjungtural)</strong>: Akibat resesi/ekonomi lesu sehingga permintaan turun (Andi di PHK).</p>`,
+                chartType: 'doughnut',
+                chartConfig: {
+                    title: 'Komposisi Penyebab Pengangguran (Kasus)',
+                    data: { labels: ['Friksional', 'Struktural', 'Siklis'], datasets: [{ data: [3, 1, 1], backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal13',
+                label: 'Soal 13 (Pengangguran Muda)',
+                title: 'Soal No 13',
+                topic: 'Solusi Ketenagakerjaan',
+                text: `<p>TPT usia muda (15-24) mencapai 16,16% (tidak sesuai skill dengan dunia kerja). Solusi paling tepat?</p>`,
+                options: [
+                    { letter: 'D', text: 'Membangun industri padat karya di daerah.' },
+                    { letter: 'E', text: 'Menyediakan pelatihan keterampilan terintegrasi sistem pendidikan.' }
+                ],
+                answer: 'E',
+                answerText: 'Menyediakan pelatihan keterampilan yang terintegrasi (E)',
+                pembahasan: `<p>Karena inti masalah yang disebutkan adalah "ketidaksesuaian keterampilan lulusan muda dan kebutuhan kerja" (<em>Skill mismatch / structural unemployment</em>), maka pendekatan jangka panjang yang paling struktural adalah mereformasi pendidikan melalui <strong>pelatihan vokasi atau keterampilan khusus yang disesuaikan dengan permintaan industri.</strong></p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Tingkat Pengangguran Terbuka (BPS)',
+                    data: { labels: ['15-24 Thn', '25-59 Thn', '>60 Thn'], datasets: [{ label: 'Persentase (%)', data: [16.16, 3.04, 1.67], backgroundColor: ['#ef4444', '#3b82f6', '#10b981'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal14',
+                label: 'Soal 14 (Inflasi)',
+                title: 'Soal No 14',
+                topic: 'Penyebab Inflasi',
+                text: `<p>Jelang Ramadan, konsumsi masyarakat naik tajam. Di sisi lain, cuaca buruk memicu gagal panen. Faktor utama inflasi?</p>`,
+                options: [
+                    { letter: 'C', text: 'Peningkatan biaya distribusi BBM.' },
+                    { letter: 'E', text: 'Peningkatan permintaan barang yang lebih cepat dari pasokannya.' }
+                ],
+                answer: 'E',
+                answerText: 'Peningkatan permintaan melebihi pasokan.',
+                pembahasan: `<p>Kasus ini merupakan kombinasi dari <em>Demand-Pull Inflation</em> (tarikan permintaan menjelang bulan puasa) dan <em>Cost-Push Inflation/Supply Shock</em> (gagal panen membatasi pasokan). Secara agregat, ketika <strong>permintaan (demand) meningkat lebih besar/cepat daripada ketersediaan pasokan (supply)</strong>, harga secara umum akan melonjak drastis.</p>`,
+                chartType: 'line',
+                chartConfig: {
+                    title: 'Demand-Pull Inflation',
+                    data: { labels: ['Normal', 'Ramadan (Demand Naik)'], datasets: [{ label: 'Harga Keseimbangan', data: [100, 140], borderColor: '#ef4444', tension: 0.1 }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal15',
+                label: 'Soal 15 (Indeks Harga)',
+                title: 'Soal No 15',
+                topic: 'Perhitungan IHK',
+                text: `<p>Harga ayam 40k&rarr;45k, Telur 24k&rarr;26k, Gula 22k&rarr;25k, Cabai 14k&rarr;19k. Berapa IHK metode agregatif sederhana?</p>`,
+                options: [
+                    { letter: 'A', text: '115%' }, { letter: 'B', text: '111,62%' }, { letter: 'C', text: '110%' }
+                ],
+                answer: 'A',
+                answerText: '115%',
+                pembahasan: `<p>Metode Agregatif Sederhana: <strong>(Total Harga Pn / Total Harga Po) x 100</strong><br>
+                Total Harga Po (2024) = 40.000 + 24.000 + 22.000 + 14.000 = <strong>100.000</strong><br>
+                Total Harga Pn (2025) = 45.000 + 26.000 + 25.000 + 19.000 = <strong>115.000</strong><br>
+                IHK = (115.000 / 100.000) x 100 = <strong>115%</strong>.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Total Agregat Harga',
+                    data: { labels: ['Tahun 2024 (Po)', 'Tahun 2025 (Pn)'], datasets: [{ label: 'Total (Rp)', data: [100000, 115000], backgroundColor: ['#3b82f6', '#ef4444'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal16',
+                label: 'Soal 16 (Laju Inflasi)',
+                title: 'Soal No 16',
+                topic: 'Inflasi Sektoral',
+                text: `<p>Data IHK 2022-2025. Pariwisata(100&rarr;117), Transportasi(100&rarr;116), Kesehatan(100&rarr;118). Sektor paling berdampak?</p>`,
+                options: [
+                    { letter: 'A', text: 'Pariwisata karena 17%' },
+                    { letter: 'E', text: 'Kesehatan memberikan dampak terbesar karena kenaikan indeks harga tertinggi' }
+                ],
+                answer: 'E',
+                answerText: 'Sektor Kesehatan (E)',
+                pembahasan: `<p>Laju inflasi dilihat dari besaran persentase kenaikan IHK (Indeks Harga Konsumen) dari tahun dasar ke tahun tertentu.
+                Kesehatan: 118 - 100 = 18%.
+                Pariwisata: 117 - 100 = 17%.
+                Transportasi: 116 - 100 = 16%.
+                Karena <strong>kesehatan memiliki lonjakan tertinggi (18%)</strong>, ia berkontribusi paling signifikan terhadap inflasi.</p>`,
+                chartType: 'line',
+                chartConfig: {
+                    title: 'Pertumbuhan IHK Sektoral',
+                    data: { labels: ['2022', '2023', '2024', '2025'], datasets: [{ label: 'Pariwisata', data: [100,110,112,117], borderColor: '#3b82f6' }, { label: 'Transportasi', data: [100,107,115,116], borderColor: '#f59e0b' }, { label: 'Kesehatan', data: [100,109,114,118], borderColor: '#ef4444' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal17',
+                label: 'Soal 17 (Bank Sentral)',
+                title: 'Soal No 17',
+                topic: 'Fungsi BI',
+                text: `<p>Fungsi dan peran Bank Indonesia (Bank Sentral)? (Pilih lebih dari satu)</p>`,
+                options: [
+                    { letter: '1', text: 'Mengatur suku bunga acuan.' },
+                    { letter: '2', text: 'Menyalurkan kredit ke UMKM (SALAH - Ini bank umum).' },
+                    { letter: '3', text: 'Menjaga stabilitas sistem pembayaran dan keuangan.' }
+                ],
+                answer: 'Multi',
+                answerText: 'Suku Bunga, Sistem Pembayaran, Stabilitas Keuangan.',
+                pembahasan: `<p>Bank Indonesia adalah <em>Lender of the last resort</em>. Tugas utamanya ada 3 pilar: 1) Menetapkan & melaksanakan <strong>kebijakan moneter</strong> (suku bunga BI Rate, inflasi), 2) Mengatur & menjaga <strong>kelancaran sistem pembayaran</strong>, 3) <strong>Stabilitas sistem keuangan makro</strong>. BI TIDAK melayani simpan pinjam masyarakat secara langsung.</p>`,
+                chartType: 'polarArea',
+                chartConfig: {
+                    title: 'Pilar Utama Bank Indonesia',
+                    data: { labels: ['Moneter/Suku Bunga', 'Sistem Pembayaran', 'Stabilitas Keuangan', 'Retail/Kredit (Bukan BI)'], datasets: [{ data: [100, 100, 100, 0], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal18',
+                label: 'Soal 18 (Kebijakan Moneter)',
+                title: 'Soal No 18',
+                topic: 'Inflasi Hari Raya',
+                text: `<p>Saat Lebaran, uang beredar sangat cepat memicu inflasi. Kebijakan moneter yang sesuai? (Jawaban lebih dari satu)</p>`,
+                options: [
+                    { letter: 'A', text: 'Menaikkan suku bunga simpanan (Mendorong menabung).' },
+                    { letter: 'B', text: 'Menjual surat berharga (Menyerap dana).' },
+                    { letter: 'C', text: 'Menurunkan cadangan wajib.' }
+                ],
+                answer: 'A dan B',
+                answerText: 'Menaikkan Suku Bunga & Menjual Surat Berharga (Tight Money Policy).',
+                pembahasan: `<p>Untuk meredam inflasi (uang beredar berlebihan), BI menerapkan <strong>Kebijakan Moneter Kontraktif</strong>:
+                1. <strong>Operasi Pasar Terbuka</strong>: Menjual SBI (Surat Berharga) agar uang tunai masyarakat tersedot ke bank sentral.
+                2. <strong>Diskonto</strong>: Menaikkan suku bunga agar orang tergiur menabung dan menunda konsumsi.
+                3. <strong>GWM</strong>: Menaikkan cadangan wajib agar uang beredar menyusut.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Dampak Kebijakan Kontraktif',
+                    data: { labels: ['Uang Beredar Awal', 'Setelah Jual Surat Berharga', 'Setelah Bunga Naik'], datasets: [{ label: 'Volume Uang (Indeks)', data: [100, 85, 70], backgroundColor: ['#ef4444', '#f59e0b', '#10b981'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal19',
+                label: 'Soal 19 (Penurunan GWM)',
+                title: 'Soal No 19',
+                topic: 'GWM & Likuiditas',
+                text: `<p>Konsumsi rumah tangga lesu. BI merespons dengan menurunkan Giro Wajib Minimum (GWM). Konsekuensi kebijakan ini?</p>`,
+                options: [
+                    { letter: 'Multi', text: 'Memperluas likuiditas bank (Bisa biayai kredit).' },
+                    { letter: 'Multi', text: 'Beresiko gagal jika daya beli riil masyarakat tidak ada.' },
+                    { letter: 'Multi', text: 'Sinyal ekspansi, namun bank mungkin menahan kredit jika takut gagal bayar.' }
+                ],
+                answer: 'Multi',
+                answerText: 'Semua aspek logis dari pelonggaran kuantitatif.',
+                pembahasan: `<p>Menurunkan GWM = Bank umum wajib menyetor cadangan lebih sedikit ke BI = <strong>Dana nganggur bank bertambah</strong>. 
+                Harapannya, uang ini disalurkan sebagai kredit murah ke masyarakat. NAMUN, <em>Liquidity Trap</em> bisa terjadi: meski uang banyak, jika ekonomi lesu dan rakyat tak punya <em>purchasing power</em>, atau bank takut NPL (Kredit Macet) naik, dana tersebut tidak akan cair jadi pinjaman riil.</p>`,
+                chartType: 'doughnut',
+                chartConfig: {
+                    title: 'Aliran Likuiditas Penurunan GWM',
+                    data: { labels: ['Dana Disalurkan ke Kredit (Ideal)', 'Ditahan Bank (Risk Averse)', 'Terserap Spekulasi'], datasets: [{ data: [50, 30, 20], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal20',
+                label: 'Soal 20 (Fungsi Pajak)',
+                title: 'Soal No 20',
+                topic: 'Regulasi Eksternalitas',
+                text: `<p>Pemerintah menaikkan pajak barang demerit (rokok, fosil) dan memberi insentif industri ramah lingkungan. Dampaknya?</p>`,
+                options: [
+                    { letter: 'B', text: 'Perubahan preferensi konsumsi masyarakat menuju barang yang lebih sehat.' },
+                    { letter: 'D', text: 'Penurunan pendapatan masyarakat.' }
+                ],
+                answer: 'B',
+                answerText: 'Perubahan preferensi (Pigouvian Tax)',
+                pembahasan: `<p>Fungsi <strong>Regulerend (Mengatur)</strong> dari pajak digunakan untuk mengarahkan kebijakan sosial-ekonomi. Dengan memahalkan cukai rokok atau BBM (Pajak Pigouvian), pemerintah sengaja membuat barang yang merugikan tersebut mahal, sehingga masyarakat <strong>beralih (shifting)</strong> ke alternatif bersubsidi (kendaraan listrik, produk sehat).</p>`,
+                chartType: 'pie',
+                chartConfig: {
+                    title: 'Transisi Konsumsi',
+                    data: { labels: ['Barang Fosil/Rokok (Menyusut)', 'Barang Ramah Lingkungan (Naik)'], datasets: [{ data: [40, 60], backgroundColor: ['#6b7280', '#10b981'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal21',
+                label: 'Soal 21 (Jenis Pajak)',
+                title: 'Soal No 21',
+                topic: 'Pajak Langsung & Tidak',
+                text: `<p>Pak Andi bayar PPh (Otomatis potong gaji). Ibu Rani bayar PPN. Uangnya bangun puskesmas. Pernyataan yang benar?</p>`,
+                options: [
+                    { letter: 'Multi', text: 'Andi bayar pajak langsung, Rani pajak tidak langsung (PPN bisa dilimpahkan).' },
+                    { letter: 'Multi', text: 'Fungsi budgeter karena membiayai pengeluaran negara (puskesmas, gaji).' }
+                ],
+                answer: 'Multi',
+                answerText: 'Pajak Langsung/Tak Langsung & Fungsi Budgeter',
+                pembahasan: `<p><strong>PPh</strong> adalah Pajak Langsung (ditanggung sendiri oleh penerima gaji). <strong>PPN</strong> adalah Pajak Tidak Langsung (beban pajaknya dialihkan ke pembeli barang). Penggunaan uang pajak untuk fasilitas umum dan gaji pegawai adalah bentuk murni dari fungsi <strong>Budgeter/Fiskal</strong> (penerimaan kas negara utama).</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Kontribusi Pajak PPh vs PPN (Ilustrasi Nasional)',
+                    data: { labels: ['Pajak Langsung (PPh)', 'Pajak Tdk Langsung (PPN)'], datasets: [{ label: 'Struktur Kas Negara', data: [45, 55], backgroundColor: ['#3b82f6', '#8b5cf6'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal22',
+                label: 'Soal 22 (Manajemen BUMS)',
+                title: 'Soal No 22',
+                topic: 'Badan Usaha',
+                text: `<p>CV Taliukir butuh modal untuk mesin massal, tapi pasokan kulit langka/mahal karena aturan lingkungan. Solusinya?</p>`,
+                options: [
+                    { letter: 'Multi', text: 'Kerjasama dengan peternak (integrasi pasokan) & mencari investor bagi hasil.' },
+                    { letter: 'Multi', text: 'Riset bahan kulit sintetis berkualitas tinggi.' }
+                ],
+                answer: 'Multi',
+                answerText: 'Integrasi Vertikal (Peternak), Riset, Investor',
+                pembahasan: `<p>Solusi bisnis berkelanjutan: Untuk masalah <em>Supply Chain</em> (pasokan langka), <strong>integrasi vertikal ke hulu</strong> dengan mengamankan kontrak peternak sapi/kulit sangat tepat. Untuk masalah permodalan CV, mencari <strong>investor ekuitas (bagi hasil)</strong> lebih aman ketimbang utang berbunga besar. Alternatif jangka panjang adalah R&D bahan ramah lingkungan sintetis.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Dampak Strategi Pemecahan Masalah',
+                    data: { labels: ['Risiko Pasokan', 'Inovasi Produk', 'Kapasitas Modal'], datasets: [{ label: 'Sebelum', data: [90, 20, 30], backgroundColor: '#ef4444' }, { label: 'Sesudah Solusi', data: [20, 80, 90], backgroundColor: '#10b981' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal23',
+                label: 'Soal 23 (Manajemen Keuangan)',
+                title: 'Soal No 23',
+                topic: 'Arus Kas',
+                text: `<p>CV Surya Karya susah bayar vendor padahal pendapatan naik. Masalahnya: uang proyek A dipakai bayar utang lama/proyek B (tanpa pisah dana). Solusi?</p>`,
+                options: [
+                    { letter: 'B', text: 'Mengajukan pinjaman bank.' },
+                    { letter: 'D', text: 'Menyusun sistem pengelolaan arus kas yang terencana dan pemisahan dana (earmarking) setiap proyek.' }
+                ],
+                answer: 'D',
+                answerText: 'Perencanaan Arus Kas dan Pemisahan Dana (D)',
+                pembahasan: `<p>Masalah klasik proyek adalah <em>Gali lubang tutup lubang</em> uang muka. Pendapatan tinggi tidak berarti Likuiditas tinggi jika dana bercampur. Solusi fundamental manajemen keuangan adalah <strong>Budgeting yang ketat, Cash Flow Forecasting (Proyeksi Arus Kas), dan Earmarking</strong> (memisahkan rekening/dana spesifik untuk tiap proyek).</p>`,
+                chartType: 'doughnut',
+                chartConfig: {
+                    title: 'Ilustrasi Pemisahan Dana Proyek',
+                    data: { labels: ['Proyek A (Aman)', 'Proyek B (Aman)', 'Dana Darurat'], datasets: [{ data: [40, 40, 20], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal24',
+                label: 'Soal 24 (SHU Koperasi)',
+                title: 'Soal No 24',
+                topic: 'Koperasi & SHU',
+                text: `<p>Simpanan total 80jt, Penjualan total 250jt. SHU = 200jt. Jasa Pengurus=15%, Modal=30%, Usaha=50%. Pengurus ada 20 orang. Pak Faiz adalah pengurus, simpanan 1jt, belanja 2jt. Total SHU Pak Faiz?</p>`,
+                options: [
+                    { letter: 'A', text: 'Rp4.550.000' }, { letter: 'B', text: 'Rp3.400.000' }, { letter: 'D', text: 'Rp3.050.000' }
+                ],
+                answer: 'D',
+                answerText: 'Rp3.050.000,00',
+                pembahasan: `<p>1. <strong>Honor Pengurus</strong>: 15% x 200jt = 30jt. Dibagi 20 orang = <strong>1.500.000</strong>.<br>
+                2. <strong>Jasa Modal Pak Faiz</strong>: (Simpanan Pribadi / Total) x Alokasi Jasa Modal<br>
+                   = (1jt / 80jt) x (30% x 200jt) = 1/80 x 60jt = <strong>750.000</strong>.<br>
+                3. <strong>Jasa Usaha Pak Faiz</strong>: (Belanja Pribadi / Total) x Alokasi Jasa Usaha<br>
+                   = (2jt / 250jt) x (50% x 200jt) = 2/250 x 100jt = <strong>800.000</strong>.<br>
+                <strong>Total SHU Faiz</strong> = 1.500.000 + 750.000 + 800.000 = <strong>Rp3.050.000</strong>.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Rincian Pendapatan SHU Pak Faiz',
+                    data: { labels: ['Honor Pengurus', 'Jasa Modal', 'Jasa Usaha'], datasets: [{ label: 'Rupiah', data: [1500000, 750000, 800000], backgroundColor: '#8b5cf6' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal25',
+                label: 'Soal 25 (Kerjasama Int)',
+                title: 'Soal No 25',
+                topic: 'Perdagangan Internasional',
+                text: `<p>ASEAN (Kawasan Asia Tenggara), Indonesia-Korea Selatan (Hanya dua negara), WTO/Perdagangan Global (Seluruh dunia). Jenis kerja samanya?</p>`,
+                options: [
+                    { letter: 'E', text: 'Kerja sama regional (ASEAN), bilateral (Indo-Korsel), dan multilateral (Global).' }
+                ],
+                answer: 'E',
+                answerText: 'Regional, Bilateral, Multilateral',
+                pembahasan: `<p>1. <strong>Bilateral</strong>: Kerja sama 2 negara saja (Indonesia - Korea Selatan CEPA).<br>
+                2. <strong>Regional</strong>: Negara-negara di satu kawasan geografis tertentu (ASEAN untuk Asia Tenggara).<br>
+                3. <strong>Multilateral</strong>: Libatkan banyak negara tanpa batas geografis, biasanya di bawah payung PBB/Global (WTO, IMF).</p>`,
+                chartType: 'bubble',
+                chartConfig: {
+                    title: 'Skala Cakupan Organisasi',
+                    data: { datasets: [{ label: 'Bilateral', data: [{x: 1, y: 1, r: 10}], backgroundColor: '#3b82f6' }, { label: 'Regional', data: [{x: 2, y: 2, r: 25}], backgroundColor: '#10b981' }, { label: 'Multilateral', data: [{x: 3, y: 3, r: 50}], backgroundColor: '#ef4444' }] },
+                    options: { scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { position: 'top' } } }
+                }
+            },
+            {
+                id: 'soal26',
+                label: 'Soal 26 (Kebijakan Impor)',
+                title: 'Soal No 26',
+                topic: 'Hambatan Perdagangan',
+                text: `<p>Negara X defisit, ekspor lesu karena mahal (biaya logistik) & kualitas rendah, sementara impor konsumsi banjir matikan produk lokal. Solusi kebijakan pelindung?</p>`,
+                options: [
+                    { letter: 'A', text: 'Meningkatkan kuota impor.' },
+                    { letter: 'C', text: 'Memberikan subsidi & insentif ke industri lokal serta diversifikasi agar kompetitif.' },
+                    { letter: 'D', text: 'Menurunkan nilai tukar drastis.' }
+                ],
+                answer: 'C',
+                answerText: 'Subsidi & Insentif Industri Lokal',
+                pembahasan: `<p>Karena kelemahan Negara X ada di daya saing struktural (kualitas rendah, ongkos mahal), solusi jangka panjang bukan hanya larangan impor, melainkan <strong>memperkuat tulang punggung industri domestik</strong>. Subsidi akan menurunkan harga jual produk lokal (Cost advantage), dan insentif inovasi akan meningkatkan kualitas barang agar bisa bersaing melawan barang impor maupun untuk ekspor.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Neraca Perdagangan (Harapan Efek Subsidi)',
+                    data: { labels: ['Sebelum Kebijakan (Defisit)', 'Sesudah Subsidi & Diversifikasi'], datasets: [{ label: 'Impor', data: [150, 100], backgroundColor: '#ef4444' }, { label: 'Ekspor', data: [80, 140], backgroundColor: '#10b981' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal27',
+                label: 'Soal 27 (Dumping Udang)',
+                title: 'Soal No 27',
+                topic: 'Dumping & Tarif',
+                text: `<p>Amerika menuduh Indonesia ekspor udang pake praktik dumping (jual rugi murah) & subsidi. Jika AS kenakan tarif Anti-dumping, apa dampaknya bagi RI?</p>`,
+                options: [
+                    { letter: 'Multi', text: 'Menurunkan reputasi global perikanan Indonesia.' },
+                    { letter: 'Multi', text: 'Memicu negara tujuan ekspor lain lakukan penyelidikan serupa (Domino effect).' }
+                ],
+                answer: 'Multi',
+                answerText: 'Reputasi Turun, Efek Domino ke Negara Lain',
+                pembahasan: `<p>Pengenaan <em>Anti-dumping duty</em> oleh AS akan membuat harga udang Indonesia di AS melonjak tajam saat masuk pelabuhan (kehilangan daya saing harga melawan India/Ekuador). <strong>Dampak sistemiknya:</strong> reputasi fair-trade RI tercoreng, dan pasar-pasar lain (seperti Uni Eropa atau Jepang) akan curiga dan berpotensi ikut-ikutan menjatuhkan sanksi serupa (retaliasi/domino).</p>`,
+                chartType: 'polarArea',
+                chartConfig: {
+                    title: 'Risiko Tuduhan Dumping (Impact)',
+                    data: { labels: ['Harga Jual di AS Jadi Mahal', 'Reputasi Anjlok', 'Tertutupnya Pasar', 'Investigasi Negara Lain'], datasets: [{ data: [100, 90, 75, 85], backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'] }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal28',
+                label: 'Soal 28 (Persamaan Akuntansi)',
+                title: 'Soal No 28',
+                topic: 'Persamaan Dasar',
+                text: `<p>1) Terima tunai jasa 10jt. 2) Bayar sewa dimuka 6jt. 3) Beli peralatan kredit 12jt. 4) Setor modal 15jt. 5) Tagihan listrik belum dibayar 800rb. Mana yang sebabkan perubahan pada Aset MAUPUN Kewajiban?</p>`,
+                options: [
+                    { letter: 'Pilihan', text: 'Transaksi 3 (Aset Peralatan +, Kewajiban Utang +)' }
+                ],
+                answer: 'Transaksi 3',
+                answerText: 'Transaksi 3 (Membeli peralatan kredit)',
+                pembahasan: `<p>Persamaan: <strong>Aset = Kewajiban + Ekuitas</strong>.<br>
+                1. Kas (+) & Modal (+). (Aset & Ekuitas)<br>
+                2. Sewa DbM (+) & Kas (-). (Aset & Aset)<br>
+                3. <strong>Peralatan (+) & Utang (+)</strong>. (Aset naik 12jt, Kewajiban naik 12jt).<br>
+                4. Kas (+) & Modal (+). (Aset & Ekuitas)<br>
+                5. Utang (+) & Modal (-). (Kewajiban & Ekuitas)</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Dampak Transaksi 3',
+                    data: { labels: ['Aset (Peralatan)', 'Kewajiban (Utang)', 'Ekuitas'], datasets: [{ label: 'Bertambah (+)', data: [12, 12, 0], backgroundColor: '#3b82f6' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal29',
+                label: 'Soal 29 (Perubahan Harta)',
+                title: 'Soal No 29',
+                topic: 'Aset, Utang, Modal',
+                text: `<p>Kas 10jt, Piutang 7jt, SewaDbM 6jt, Alat 8,5jt. Utang 8jt, Modal 23,5jt. Jika bayar utang 2jt dan beban bunga 50rb. Perubahan PDA nya?</p>`,
+                options: [
+                    { letter: 'B', text: 'harta berkurang menjadi Rp29.450.000, utang berkurang menjadi Rp6.000.000, dan modal berkurang menjadi Rp23.450.000' }
+                ],
+                answer: 'B',
+                answerText: 'Harta 29.450.000, Utang 6.000.000, Modal 23.450.000',
+                pembahasan: `<p>
+                <strong>Harta Awal</strong> = 10 + 7 + 6 + 8,5 = 31,5 Juta.
+                <br>Uang Kas keluar = 2.000.000 (Bayar Utang Pokok) + 50.000 (Beban Bunga) = 2.050.000.
+                <br><strong>Harta Akhir</strong> = 31.500.000 - 2.050.000 = <strong>29.450.000</strong>.
+                <br><strong>Utang Akhir</strong> = 8.000.000 - 2.000.000 = <strong>6.000.000</strong>.
+                <br><strong>Modal Akhir</strong> = 23.500.000 - 50.000 (beban bunga mengurangi modal) = <strong>23.450.000</strong>.
+                <br>Cek Keseimbangan: 29.450 = 6.000 + 23.450 (Balance/Seimbang!).</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Posisi Keuangan Setelah Bayar Utang',
+                    data: { labels: ['Harta Total', 'Utang', 'Modal'], datasets: [{ label: 'Sebelum', data: [31.5, 8.0, 23.5], backgroundColor: '#d1d5db' }, { label: 'Sesudah', data: [29.45, 6.0, 23.45], backgroundColor: '#10b981' }] },
+                    options: {}
+                }
+            },
+            {
+                id: 'soal30',
+                label: 'Soal 30 (Akuntansi)',
+                title: 'Soal No 30',
+                topic: 'Persamaan Dasar & Laba Rugi',
+                text: `<p>Diketahui data keuangan rental kendaraan "Sat Set" (Desember 2024):</p>
+                <ul class="list-disc ml-5 space-y-1 mb-2">
+                    <li>Pendapatan operasional: Rp93.000.000,00</li>
+                    <li>Pendapatan non operasional: Rp300.000,00</li>
+                    <li>Beban operasional: Rp17.950.000,00</li>
+                    <li>Beban non operasional: Rp3.050.000,00</li>
+                    <li>Prive: Rp2.500.000,00</li>
+                    <li>Modal akhir: Rp195.000.000,00</li>
+                </ul>
+                <p>Berdasarkan data tersebut, besarnya modal awal adalah ....</p>`,
+                options: [
+                    { letter: 'A', text: 'Rp120.200.000,00' },
+                    { letter: 'B', text: 'Rp122.700.000,00' },
+                    { letter: 'C', text: 'Rp125.200.000,00' },
+                    { letter: 'D', text: 'Rp267.300.000,00' },
+                    { letter: 'E', text: 'Rp269.800.000,00' }
+                ],
+                answer: 'C',
+                answerText: 'Rp125.200.000,00',
+                pembahasan: `<p><strong>Langkah 1: Menghitung Laba Bersih</strong><br>
+                Total Pendapatan = 93.000.000 + 300.000 = Rp93.300.000<br>
+                Total Beban = 17.950.000 + 3.050.000 = Rp21.000.000<br>
+                Laba Bersih = Pendapatan - Beban = 93.300.000 - 21.000.000 = <strong>Rp72.300.000</strong></p>
+                <p><strong>Langkah 2: Menghitung Modal Awal</strong><br>
+                Rumus Modal Akhir = Modal Awal + Laba Bersih - Prive<br>
+                195.000.000 = Modal Awal + 72.300.000 - 2.500.000<br>
+                195.000.000 = Modal Awal + 69.800.000<br>
+                Modal Awal = 195.000.000 - 69.800.000 = <strong>Rp125.200.000</strong>.</p>`,
+                chartType: 'bar',
+                chartConfig: {
+                    title: 'Komponen Perubahan Modal',
+                    data: {
+                        labels: ['Modal Awal', 'Laba Bersih', 'Prive', 'Modal Akhir'],
+                        datasets: [{ label: 'Juta Rupiah', data: [125.2, 72.3, -2.5, 195.0], backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#8b5cf6'] }]
+                    },
+                    options: { plugins: { legend: { display: false } } }
+                }
+            }
+        ];
+
+        let currentChart = null;
+        let currentActiveIndex = 0;
+
+        function initSidebar() {
+            const container = document.getElementById('nav-container');
+            container.innerHTML = '';
+            dataSoal.forEach((soal, index) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-5 py-3.5 md:py-3 text-sm hover:bg-blue-50 transition-colors border-l-4 border-transparent flex items-center justify-between nav-item`;
+                btn.id = `nav-${soal.id}`;
+                btn.innerHTML = `<span class="truncate pr-2">${soal.label}</span> <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+                btn.onclick = () => loadSoal(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function loadSoal(index) {
+            if (index < 0 || index >= dataSoal.length) return;
+            currentActiveIndex = index;
+            const soal = dataSoal[index];
+
+            // Update active state di sidebar
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('tab-active'));
+            const activeBtn = document.getElementById(`nav-${soal.id}`);
+            if (activeBtn) {
+                activeBtn.classList.add('tab-active');
+                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            
+            // Tutup menu mobile
+            toggleMobileMenu(false);
+
+            // Render Teks
+            document.getElementById('soal-title').innerText = soal.title;
+            document.getElementById('soal-badge').innerText = soal.topic;
+            document.getElementById('soal-text').innerHTML = soal.text;
+            
+            const optionsContainer = document.getElementById('soal-options');
+            optionsContainer.innerHTML = '';
+            optionsContainer.classList.remove('hidden');
+            
+            soal.options.forEach(opt => {
+                // Deteksi opsi jawaban
+                const isMatch = (opt.letter === soal.answer) || (soal.answer.includes(opt.letter) && opt.letter.length === 1);
+                
+                const optDiv = document.createElement('div');
+                optDiv.className = `p-3.5 border rounded-lg flex items-start transition-colors ${isMatch ? 'bg-green-50 border-green-300 shadow-sm' : 'bg-white border-gray-200 hover:border-blue-300'}`;
+                optDiv.innerHTML = `
+                    <span class="font-bold mr-3 ${isMatch ? 'text-green-700' : 'text-gray-600'} min-w-[20px]">${opt.letter}.</span>
+                    <span class="${isMatch ? 'text-green-900 font-medium' : 'text-gray-700'} text-sm md:text-base">${opt.text}</span>
+                `;
+                optionsContainer.appendChild(optDiv);
+            });
+
+            document.getElementById('pembahasan-container').classList.remove('hidden');
+            document.getElementById('correct-answer').innerText = soal.answerText;
+            document.getElementById('pembahasan-text').innerHTML = soal.pembahasan;
+            document.getElementById('chart-title').innerText = soal.chartConfig.title;
+
+            // Render Chart
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 600, easing: 'easeOutQuart' },
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, usePointStyle: true, font: {size: 11} } }
+                }
+            };
+
+            const finalOptions = { ...defaultOptions, ...soal.chartConfig.options };
+            if (soal.chartConfig.options.scales) finalOptions.scales = soal.chartConfig.options.scales;
+            if (soal.chartConfig.options.plugins) finalOptions.plugins = { ...defaultOptions.plugins, ...soal.chartConfig.options.plugins };
+
+            currentChart = new Chart(ctx, {
+                type: soal.chartType,
+                data: soal.chartConfig.data,
+                options: finalOptions
+            });
+
+            // Update status tombol navigasi
+            document.getElementById('btn-prev').disabled = (index === 0);
+            document.getElementById('btn-next').disabled = (index === dataSoal.length - 1);
+            
+            // Auto scroll ke atas saat soal ganti
+            const isMobile = window.innerWidth < 768;
+            window.scrollTo({ top: isMobile ? 0 : 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu(show) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                document.body.style.overflow = 'hidden'; // cegah scroll background
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+                document.body.style.overflow = ''; // kembalikan scroll
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => toggleMobileMenu(true));
+        document.getElementById('close-sidebar-btn').addEventListener('click', () => toggleMobileMenu(false));
+        document.getElementById('mobile-overlay').addEventListener('click', () => toggleMobileMenu(false));
+
+        document.getElementById('btn-prev').addEventListener('click', () => loadSoal(currentActiveIndex - 1));
+        document.getElementById('btn-next').addEventListener('click', () => loadSoal(currentActiveIndex + 1));
+
+        // Init
+        window.onload = () => {
+            initSidebar();
+            loadSoal(0);
+        };
+    </script>
+</body>
+</html>
